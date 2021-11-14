@@ -11,6 +11,7 @@ import id.ac.umn.cool_tech_pdf_converter.MainActivity.Companion.KEY_CONVERTER_TY
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityComverterBinding
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityMainBinding
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
+import java.io.File
 
 class ComverterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityComverterBinding
@@ -54,7 +55,9 @@ class ComverterActivity : AppCompatActivity() {
         FilePickerBuilder.instance
             .setMaxCount(1) //optional
             .setActivityTheme(R.style.LibAppTheme) //optional
+            .addFileSupport("docx" , arrayOf(".docx"))
             .pickFile(this, requestCode);
+
 
 
     }
@@ -63,21 +66,43 @@ class ComverterActivity : AppCompatActivity() {
         binding.buttonInsertFile1.setOnClickListener{
             selectFile(FILE1_REQUEST_CODE)
         }
+        binding.buttonInsertFile2.setOnClickListener{
+            selectFile(FILE2_REQUEST_CODE)
+        }
+        binding.buttonInsertFile3.setOnClickListener{
+            selectFile(FILE3_REQUEST_CODE)
+        }
+        binding.buttonInsertFile4.setOnClickListener{
+            selectFile(FILE4_REQUEST_CODE)
+        }
+        binding.buttonInsertFile5.setOnClickListener{
+            selectFile(FILE5_REQUEST_CODE)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if(requestCode == FILE1_REQUEST_CODE){
-            if(resultCode == Activity.RESULT_OK && data!=null ){
-                val file = data.getParcelableArrayListExtra<Uri>(FilePickerConst.KEY_SELECTED_DOCS).orEmpty()
-                selectedFile.addAll(file)
-                binding.buttonInsertFile1.text = "change file"
+        if(resultCode == Activity.RESULT_OK && data!=null ){
+            val file = data.getParcelableArrayListExtra<Uri>(FilePickerConst.KEY_SELECTED_DOCS).orEmpty()
+            selectedFile.addAll(file)
+            val uploadedFile = File(file[0].path)
+            when(requestCode){
+                FILE1_REQUEST_CODE -> binding.buttonInsertFile1.text = uploadedFile.name
+                FILE2_REQUEST_CODE -> binding.buttonInsertFile2.text = uploadedFile.name
+                FILE3_REQUEST_CODE -> binding.buttonInsertFile3.text = uploadedFile.name
+                FILE4_REQUEST_CODE -> binding.buttonInsertFile4.text = uploadedFile.name
+                FILE5_REQUEST_CODE -> binding.buttonInsertFile5.text = uploadedFile.name
             }
+
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
     companion object{
         const val FILE1_REQUEST_CODE = 100
+        const val FILE2_REQUEST_CODE = 80
+        const val FILE3_REQUEST_CODE = 90
+        const val FILE4_REQUEST_CODE = 92
+        const val FILE5_REQUEST_CODE = 82
     }
 
 

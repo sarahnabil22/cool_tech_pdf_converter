@@ -8,3 +8,4 @@ enum class ConverterType(val type:Int) {
     WORD_TO_PDF(1) , IMAGE_TO_PDF(2) , CUSTOMIZE_PDF(3) , PDF_TO_WORD(4) , PDF_TO_IMAGE(5)
 
 }
+

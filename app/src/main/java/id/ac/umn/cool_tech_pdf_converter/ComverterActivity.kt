@@ -5,11 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import droidninja.filepicker.FilePickerBuilder
 import droidninja.filepicker.FilePickerConst
 import id.ac.umn.cool_tech_pdf_converter.MainActivity.Companion.KEY_CONVERTER_TYPE
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityComverterBinding
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityMainBinding
+import id.ac.umn.cool_tech_pdf_converter.utils.ConverterHelper
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
 import java.io.File
 
@@ -77,6 +79,18 @@ class ComverterActivity : AppCompatActivity() {
         }
         binding.buttonInsertFile5.setOnClickListener{
             selectFile(FILE5_REQUEST_CODE)
+        }
+        binding.buttonConvert.setOnClickListener{
+            val helper = ConverterHelper()
+            val uploadedFile = File(selectedFile[0].path)
+            val outputPath =  Environment.DIRECTORY_DOWNLOADS + "/" + uploadedFile.nameWithoutExtension + ".pdf"
+            helper.convertWordToPdf(
+                inputFilePath = uploadedFile.path ,
+                outputFilePath = outputPath ,
+                context = this
+
+            )
+
         }
     }
 

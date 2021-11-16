@@ -13,6 +13,7 @@ import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityComverterBinding
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityMainBinding
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterHelper
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
+import id.ac.umn.cool_tech_pdf_converter.utils.getRealPathFromURI
 import java.io.File
 
 class ComverterActivity : AppCompatActivity() {
@@ -82,8 +83,8 @@ class ComverterActivity : AppCompatActivity() {
         }
         binding.buttonConvert.setOnClickListener{
             val helper = ConverterHelper()
-            val uploadedFile = File(selectedFile[0].path)
-            val outputPath =  Environment.DIRECTORY_DOWNLOADS + "/" + uploadedFile.nameWithoutExtension + ".pdf"
+            val uploadedFile = File(getRealPathFromURI(this , selectedFile[0]))
+            val outputPath =   "$filesDir/" + uploadedFile.nameWithoutExtension + ".pdf"
             helper.convertWordToPdf(
                 inputFilePath = uploadedFile.path ,
                 outputFilePath = outputPath ,

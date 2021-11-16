@@ -1,6 +1,11 @@
 package id.ac.umn.cool_tech_pdf_converter.utils
 
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.itextpdf.text.Document
@@ -13,7 +18,9 @@ class ConverterHelper {
     fun convertWordToPdf(inputFilePath : String , outputFilePath : String , context : Context ) {
         try {
             val document = Document()
-            PdfWriter.getInstance(document, FileOutputStream(outputFilePath))
+            val output = FileOutputStream(File(outputFilePath))
+
+            PdfWriter.getInstance(document, output)
             document.open()
             val newFile = File(inputFilePath)
             if (newFile.exists()) {
@@ -38,6 +45,10 @@ class ConverterHelper {
         }
     }
 
+    fun convertImageToPdf(inputFilePath){
+
+    }
+
 
     fun showAlertDialog(context : Context){
          val alertDialogBuilder = AlertDialog.Builder(context)
@@ -49,4 +60,26 @@ class ConverterHelper {
         val dialog = alertDialogBuilder.create()
         dialog.show()
     }
+
 }
+
+fun getRealPathFromURI(context: Context, contentUri: Uri): String? {
+    var cursor: Cursor? = null
+    return try {
+        val proj = arrayOf(MediaStore.Images.Media.DATA)
+        cursor = context.contentResolver.query(contentUri, proj, null, null, null)
+        val index: Int? = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        cursor?.moveToFirst()
+        if (index != null) {
+            cursor?.getString(index)
+        } else null
+    }
+
+        catch (e: Exception) {
+            Log.e(TAG, "getRealPathFromURI Exception : $e")
+            ""
+        } finally {
+            cursor?.close()
+        }
+}
+

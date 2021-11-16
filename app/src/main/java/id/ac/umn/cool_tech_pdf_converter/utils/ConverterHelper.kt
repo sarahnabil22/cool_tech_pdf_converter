@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.itextpdf.text.Document
 import com.itextpdf.text.Element
+import com.itextpdf.text.Image
 import com.itextpdf.text.Paragraph
 import com.itextpdf.text.pdf.PdfWriter
 import java.io.*
@@ -39,14 +40,27 @@ class ConverterHelper {
             else{
                 Toast.makeText(context , "file not exists" , Toast.LENGTH_SHORT).show()
             }
+            document.close()
         }
         catch(exception : Exception){
             Toast.makeText(context , exception.message , Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun convertImageToPdf(inputFilePath){
-
+    fun convertImageToPdf(inputFilePath : String , outputFilePath: String , context: Context){
+ try{
+     val document = Document()
+     val output = FileOutputStream(File(outputFilePath))
+     PdfWriter.getInstance(document , output)
+     document.open()
+     val image = Image.getInstance(inputFilePath)
+     document.add(image)
+     document.close()
+     showAlertDialog(context)
+ }
+ catch(exception : Exception){
+     Toast.makeText(context , exception.message , Toast.LENGTH_SHORT).show()
+ }
     }
 
 

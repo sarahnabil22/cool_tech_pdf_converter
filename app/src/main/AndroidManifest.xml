@@ -7,6 +7,9 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -15,12 +18,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cool_tech_pdf_converter"
         android:requestLegacyExternalStorage="true">
+
+        <meta-data android:name="pdftron_license_key" android:value="${pdftronLicenseKey}"/>
+
+        <!-- Document viewer activity declaration-->
+        <activity android:name="com.pdftron.pdf.controls.DocumentActivity" android:configChanges="keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize" android:windowSoftInputMode="adjustPan" android:theme="@style/PDFTronAppTheme"/>
         <activity
             android:name=".ComverterActivity"
             android:exported="true" />
-        <activity
-            android:name=".ConverterActivity"
-            android:exported="true" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -30,6 +36,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

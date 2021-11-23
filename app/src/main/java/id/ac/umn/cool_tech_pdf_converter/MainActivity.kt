@@ -12,6 +12,8 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.pdftron.pdf.config.ViewerConfig
+import com.pdftron.pdf.controls.DocumentActivity
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityMainBinding
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
 import java.lang.Exception
@@ -31,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         if(checkPermission()){
             requestPermission()
         }
+
     }
 
     fun requestPermission(){

@@ -4,6 +4,13 @@ buildscript {
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }
+        // ... Anything else you already had
+        flatDir {
+            dirs 'libs'
+        }
+
+
+
     }
     dependencies {
         classpath "com.android.tools.build:gradle:7.0.1"

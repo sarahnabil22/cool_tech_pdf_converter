@@ -6,6 +6,10 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.widget.Toast
+import com.google.android.gms.cast.framework.media.ImagePicker
+import com.pdftron.pdf.config.ViewerConfig
+import com.pdftron.pdf.controls.DocumentActivity
 import droidninja.filepicker.FilePickerBuilder
 import droidninja.filepicker.FilePickerConst
 import id.ac.umn.cool_tech_pdf_converter.MainActivity.Companion.KEY_CONVERTER_TYPE
@@ -59,7 +63,6 @@ class ComverterActivity : AppCompatActivity() {
         FilePickerBuilder.instance
             .setMaxCount(1) //optional
             .setActivityTheme(R.style.LibAppTheme) //optional
-            .addFileSupport("docx" , arrayOf(".docx"))
             .pickFile(this, requestCode);
 
 
@@ -68,32 +71,51 @@ class ComverterActivity : AppCompatActivity() {
 
     fun initAction(){
         binding.buttonInsertFile1.setOnClickListener{
-            selectFile(FILE1_REQUEST_CODE)
+            selectFileOrImage(FILE1_REQUEST_CODE)
         }
         binding.buttonInsertFile2.setOnClickListener{
-            selectFile(FILE2_REQUEST_CODE)
+            selectFileOrImage(FILE2_REQUEST_CODE)
         }
         binding.buttonInsertFile3.setOnClickListener{
-            selectFile(FILE3_REQUEST_CODE)
+            selectFileOrImage(FILE3_REQUEST_CODE)
         }
         binding.buttonInsertFile4.setOnClickListener{
-            selectFile(FILE4_REQUEST_CODE)
+            selectFileOrImage(FILE4_REQUEST_CODE)
         }
         binding.buttonInsertFile5.setOnClickListener{
-            selectFile(FILE5_REQUEST_CODE)
+            selectFileOrImage(FILE5_REQUEST_CODE)
         }
         binding.buttonConvert.setOnClickListener{
-            val helper = PdftronHelper(this)
-            val uploadedFile = File(getRealPathFromURI(this , selectedFile[0]))
-            val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
-            helper.simpleDocxConvert(
-                inputFilePath = uploadedFile.path ,
-                outputFilePath = outputPath
+            val helper = PdftronHelper()
+            selectedFile.forEach{
+                val uploadedFile = File(getRealPathFromURI(this , it))
+                val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
+                helper.simpleDocxConvert(
+                    inputFilePath = uploadedFile.path ,
+                    outputFilePath = outputPath ,
+                    onFinishAction = {
 
+                        Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                        openLocalFile(outputPath)
+                    } ,
 
-            )
+                    onErrorAction = {
 
+                        Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                    })
+
+            }
         }
+    }
+
+    fun selectFileOrImage(requestCode: Int){
+        when(type){
+            ConverterType.WORD_TO_PDF -> selectFile(requestCode)
+            ConverterType.IMAGE_TO_PDF -> selectImage(requestCode)
+            ConverterType.PDF_TO_WORD -> selectFile(requestCode)
+            ConverterType.PDF_TO_IMAGE -> selectFile(requestCode)
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -102,15 +124,38 @@ class ComverterActivity : AppCompatActivity() {
             selectedFile.addAll(file)
             val uploadedFile = File(file[0].path)
             when(requestCode){
-                FILE1_REQUEST_CODE -> binding.buttonInsertFile1.text = uploadedFile.name
-                FILE2_REQUEST_CODE -> binding.buttonInsertFile2.text = uploadedFile.name
+                FILE1_REQUEST_CODE  -> binding.buttonInsertFile1.text = uploadedFile.name
+                FILE2_REQUEST_CODE  -> binding.buttonInsertFile2.text = uploadedFile.name
                 FILE3_REQUEST_CODE -> binding.buttonInsertFile3.text = uploadedFile.name
-                FILE4_REQUEST_CODE -> binding.buttonInsertFile4.text = uploadedFile.name
-                FILE5_REQUEST_CODE -> binding.buttonInsertFile5.text = uploadedFile.name
+                FILE4_REQUEST_CODE  -> binding.buttonInsertFile4.text = uploadedFile.name
+                FILE5_REQUEST_CODE  -> binding.buttonInsertFile5.text = uploadedFile.name
             }
 
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun openLocalFile(path: String) {
+        // Set the cache location using the config to store the cache file
+        val config =
+            ViewerConfig.Builder().openUrlCachePath(this.getCacheDir().getAbsolutePath()).build();
+
+        val uri = Uri.fromFile(File(path))
+
+        val intent: Intent =
+            DocumentActivity.IntentBuilder.fromActivityClass(this, DocumentActivity::class.java)
+                .withUri(uri)
+                .usingConfig(config)
+                .usingTheme(R.style.PDFTronAppTheme)
+                .build()
+        startActivity(intent)
+    }
+
+    fun selectImage(requestCode: Int){
+        FilePickerBuilder.instance
+            .setMaxCount(1) //optional
+            .setActivityTheme(R.style.LibAppTheme) //optional
+            .pickPhoto(this, requestCode  );
     }
 
     companion object{
@@ -119,6 +164,8 @@ class ComverterActivity : AppCompatActivity() {
         const val FILE3_REQUEST_CODE = 90
         const val FILE4_REQUEST_CODE = 92
         const val FILE5_REQUEST_CODE = 82
+
+
     }
 
 

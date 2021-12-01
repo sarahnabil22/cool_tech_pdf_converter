@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.os.PersistableBundle
 import android.widget.Toast
 import com.google.android.gms.cast.framework.media.ImagePicker
 import com.pdftron.pdf.config.ViewerConfig
@@ -34,6 +35,7 @@ class ComverterActivity : AppCompatActivity() {
         initAction()
 
     }
+
 
     fun initIntent(){
        val converterType = intent.getIntExtra(KEY_CONVERTER_TYPE , 0)
@@ -90,19 +92,38 @@ class ComverterActivity : AppCompatActivity() {
             selectedFile.forEach{
                 val uploadedFile = File(getRealPathFromURI(this , it))
                 val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
-                helper.simpleDocxConvert(
-                    inputFilePath = uploadedFile.path ,
-                    outputFilePath = outputPath ,
-                    onFinishAction = {
+                if(type == ConverterType.WORD_TO_PDF){
+                    helper.simpleDocxConvert(
+                        inputFilePath = uploadedFile.path ,
+                        outputFilePath = outputPath ,
+                        onFinishAction = {
 
-                        Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
-                        openLocalFile(outputPath)
-                    } ,
+                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                            openLocalFile(outputPath)
+                        } ,
 
-                    onErrorAction = {
+                        onErrorAction = {
 
-                        Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
-                    })
+                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                        })
+                }
+                else{
+                    helper.simpleImageConvert(
+                        context = this ,
+                        inputFilePath = uploadedFile.path ,
+                        outputFilePath = outputPath ,
+                        onFinishAction = {
+
+                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                            openLocalFile(outputPath)
+                        } ,
+
+                        onErrorAction = {
+
+                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                        })
+                }
+
 
             }
         }
@@ -120,7 +141,14 @@ class ComverterActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK && data!=null ){
-            val file = data.getParcelableArrayListExtra<Uri>(FilePickerConst.KEY_SELECTED_DOCS).orEmpty()
+            val file = data.getParcelableArrayListExtra<Uri>(
+                if(type == ConverterType.WORD_TO_PDF){
+                    FilePickerConst.KEY_SELECTED_DOCS
+                }
+            else{
+                    FilePickerConst.KEY_SELECTED_MEDIA
+            }
+               ).orEmpty()
             selectedFile.addAll(file)
             val uploadedFile = File(file[0].path)
             when(requestCode){

@@ -20,12 +20,14 @@ import id.ac.umn.cool_tech_pdf_converter.utils.ConverterHelper
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
 import id.ac.umn.cool_tech_pdf_converter.utils.PdftronHelper
 import id.ac.umn.cool_tech_pdf_converter.utils.getRealPathFromURI
+import io.reactivex.disposables.CompositeDisposable
 import java.io.File
 
 class ComverterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityComverterBinding
     private var type : ConverterType = ConverterType.WORD_TO_PDF
     private var selectedFile : ArrayList<Uri> = arrayListOf()
+    private var compositeDisposable = CompositeDisposable()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityComverterBinding.inflate(layoutInflater)
@@ -92,22 +94,7 @@ class ComverterActivity : AppCompatActivity() {
             selectedFile.forEach{
                 val uploadedFile = File(getRealPathFromURI(this , it))
                 val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
-                if(type == ConverterType.WORD_TO_PDF){
-                    helper.simpleDocxConvert(
-                        inputFilePath = uploadedFile.path ,
-                        outputFilePath = outputPath ,
-                        onFinishAction = {
-
-                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
-                            openLocalFile(outputPath)
-                        } ,
-
-                        onErrorAction = {
-
-                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
-                        })
-                }
-                else{
+                if(type == ConverterType.IMAGE_TO_PDF){
                     helper.simpleImageConvert(
                         context = this ,
                         inputFilePath = uploadedFile.path ,
@@ -123,12 +110,50 @@ class ComverterActivity : AppCompatActivity() {
                             Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
                         })
                 }
+                else if(type == ConverterType.WORD_TO_PDF){
+                    helper.simpleDocxConvert(
+
+                        inputFilePath = uploadedFile.path ,
+                        outputFilePath = outputPath ,
+                        onFinishAction = {
+
+                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                            openLocalFile(outputPath)
+                        } ,
+
+                        onErrorAction = {
+
+                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                        })
+                }
+                else if(type == ConverterType.PDF_TO_WORD){
+                    helper.simplePdfToWordConvert(
+                        inputFilePath = uploadedFile.path ,
+                        outputFilePath =  outputPath ,
+                        onFinishAction = {
+
+                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                            openLocalFile(outputPath)
+                        } ,
+
+                        onErrorAction = {
+
+                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                        } ,
+                       context = this
+                    )
+                }
+
 
 
             }
         }
     }
 
+    override fun onDestroy() {
+        compositeDisposable.dispose()
+        super.onDestroy()
+    }
     fun selectFileOrImage(requestCode: Int){
         when(type){
             ConverterType.WORD_TO_PDF -> selectFile(requestCode)
@@ -142,11 +167,11 @@ class ComverterActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK && data!=null ){
             val file = data.getParcelableArrayListExtra<Uri>(
-                if(type == ConverterType.WORD_TO_PDF){
-                    FilePickerConst.KEY_SELECTED_DOCS
+                if(type == ConverterType.IMAGE_TO_PDF){
+                    FilePickerConst.KEY_SELECTED_MEDIA
                 }
             else{
-                    FilePickerConst.KEY_SELECTED_MEDIA
+                    FilePickerConst.KEY_SELECTED_DOCS
             }
                ).orEmpty()
             selectedFile.addAll(file)

@@ -54,6 +54,8 @@ dependencies {
 
     implementation files('libs/pdftron.aar')
     implementation files('libs/tools.aar')
+    implementation files('libs/pdftron-actions.aar')
+    implementation files('libs/pdftron-collab.aar')
 
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

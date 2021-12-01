@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
         initAction()
-        if(checkPermission()){
+        if(!checkPermission()){
             requestPermission()
         }
 

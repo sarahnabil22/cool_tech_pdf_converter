@@ -51,13 +51,14 @@
         android:text="customize pdf"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonImageToPdf" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonImageToPdf"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="cool tech pdf converter"
+        android:text="my pdf conveter"
         android:textColor="#FBF4F4"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="@+id/toolbar"

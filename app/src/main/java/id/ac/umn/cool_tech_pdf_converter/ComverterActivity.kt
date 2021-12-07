@@ -1,12 +1,14 @@
 package id.ac.umn.cool_tech_pdf_converter
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
 import android.os.PersistableBundle
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.cast.framework.media.ImagePicker
 import com.pdftron.pdf.config.ViewerConfig
@@ -16,10 +18,10 @@ import droidninja.filepicker.FilePickerConst
 import id.ac.umn.cool_tech_pdf_converter.MainActivity.Companion.KEY_CONVERTER_TYPE
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityComverterBinding
 import id.ac.umn.cool_tech_pdf_converter.databinding.ActivityMainBinding
-import id.ac.umn.cool_tech_pdf_converter.utils.ConverterHelper
+
 import id.ac.umn.cool_tech_pdf_converter.utils.ConverterType
 import id.ac.umn.cool_tech_pdf_converter.utils.PdftronHelper
-import id.ac.umn.cool_tech_pdf_converter.utils.getRealPathFromURI
+
 import io.reactivex.disposables.CompositeDisposable
 import java.io.File
 
@@ -90,57 +92,153 @@ class ComverterActivity : AppCompatActivity() {
             selectFileOrImage(FILE5_REQUEST_CODE)
         }
         binding.buttonConvert.setOnClickListener{
+            binding.progressBar.visibility = View.VISIBLE
             val helper = PdftronHelper()
+            var count = 0
             selectedFile.forEach{
-                val uploadedFile = File(getRealPathFromURI(this , it))
-                val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
+                val uploadedFile = File(helper.getRealPathFromURI(this , it))
+
                 if(type == ConverterType.IMAGE_TO_PDF){
+                    val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
                     helper.simpleImageConvert(
                         context = this ,
                         inputFilePath = uploadedFile.path ,
                         outputFilePath = outputPath ,
                         onFinishAction = {
+                            count++
+                            if(count == selectedFile.size){
+                                binding.progressBar.visibility = View.GONE
+                                val dialog = helper.showAlertDialog(this , "selesai convert" , "done" , isCancelable = true)
+                                dialog.show()
+                                openLocalFile(outputPath)
 
-                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
-                            openLocalFile(outputPath)
+
+
+                            }
+
+
+                           // Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+
                         } ,
 
                         onErrorAction = {
 
-                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                            binding.progressBar.visibility = View.GONE
+                            val dialog = helper.showAlertDialog(this , "error" , "$it" , isCancelable = true)
+                            dialog.show()
+                           // Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
                         })
                 }
                 else if(type == ConverterType.WORD_TO_PDF){
+                    val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".pdf"
                     helper.simpleDocxConvert(
 
                         inputFilePath = uploadedFile.path ,
                         outputFilePath = outputPath ,
                         onFinishAction = {
+                            count++
+                            if(count == selectedFile.size){
+                                binding.progressBar.visibility = View.GONE
+                                val dialog = helper.showAlertDialog(this , "selesai convert" , "done" , isCancelable = true)
+                                dialog.show()
+                                openLocalFile(outputPath)
 
-                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+
+                            }
+
+
+                            //Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
                             openLocalFile(outputPath)
                         } ,
 
                         onErrorAction = {
-
-                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                            binding.progressBar.visibility = View.GONE
+                            val dialog = helper.showAlertDialog(this , "error" , "$it" , isCancelable = true)
+                            dialog.show()
+                            //binding.progressBar.visibility = View.GONE
+                            //Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
                         })
                 }
                 else if(type == ConverterType.PDF_TO_WORD){
-                    helper.simplePdfToWordConvert(
+                    val outputPath =   "${File(Environment.getExternalStorageDirectory() , Environment.DIRECTORY_DOWNLOADS)}/" + uploadedFile.nameWithoutExtension + ".docx"
+                    helper.pdfToWord(
+                        inputFilePath = uploadedFile.path ,
+                        ouputFilePath =  outputPath ,
+                        onFinishAction = {
+
+
+                            runOnUiThread{
+                                count++
+                                if(count == selectedFile.size){
+                                    binding.progressBar.visibility = View.GONE
+                                    Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
+                                    val dialog = helper.showAlertDialog(this , "selesai convert" , "done" , isCancelable = true)
+                                    dialog.show()
+                                    startNewActivity(this , "com.microsoft.office.word" , outputPath)
+
+
+                                }
+                              //  binding.progressBar.visibility = View.GONE
+
+
+                            }
+
+
+
+                        } ,
+
+                        onErrorAction = {
+
+                            //Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                            runOnUiThread{
+                                binding.progressBar.visibility = View.GONE
+                                val dialog = helper.showAlertDialog(this , "error" , "$it" , isCancelable = true)
+                                dialog.show()
+                                //binding.progressBar.visibility = View.GONE
+                            }
+
+                        }
+
+                    )
+                }
+                else if(type == ConverterType.PDF_TO_IMAGE){
+                    val outputPath =   "${getExternalFilesDir(null)}/" + uploadedFile.nameWithoutExtension + ".jpg"
+                    helper.simplePdfToImageConvert(
                         inputFilePath = uploadedFile.path ,
                         outputFilePath =  outputPath ,
                         onFinishAction = {
 
-                            Toast.makeText(this , "file converted" , Toast.LENGTH_SHORT).show()
-                            openLocalFile(outputPath)
+
+                            runOnUiThread{
+                                count++
+                                if(count == selectedFile.size){
+                                    binding.progressBar.visibility = View.GONE
+                                    val dialog = helper.showAlertDialog(this , "selesai convert" , "done" , isCancelable = true)
+                                    dialog.show()
+                                    openLocalFile(outputPath)
+
+
+                                }
+                          //      binding.progressBar.visibility = View.GONE
+
+
+
+                            }
+
+
+
                         } ,
 
                         onErrorAction = {
+                            runOnUiThread{
+                                binding.progressBar.visibility = View.GONE
+                                val dialog = helper.showAlertDialog(this , "error" , "$it" , isCancelable = true)
+                              dialog.show()
+                            }
 
-                            Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
-                        } ,
-                       context = this
+                            //Toast.makeText(this , "error $it" , Toast.LENGTH_SHORT).show()
+                        }
+
                     )
                 }
 
@@ -150,10 +248,7 @@ class ComverterActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        compositeDisposable.dispose()
-        super.onDestroy()
-    }
+
     fun selectFileOrImage(requestCode: Int){
         when(type){
             ConverterType.WORD_TO_PDF -> selectFile(requestCode)
@@ -208,8 +303,20 @@ class ComverterActivity : AppCompatActivity() {
         FilePickerBuilder.instance
             .setMaxCount(1) //optional
             .setActivityTheme(R.style.LibAppTheme) //optional
-            .pickPhoto(this, requestCode  );
+            .pickPhoto(this, requestCode );
     }
+
+    fun startNewActivity(context: Context, packageName: String , filePath :String) {
+        var intent: Intent? = context.getPackageManager().getLaunchIntentForPackage(packageName)
+        if (intent == null) {
+            // Bring user to the market or let them choose an app?
+            intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse("market://details?id=$packageName")
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
 
     companion object{
         const val FILE1_REQUEST_CODE = 100

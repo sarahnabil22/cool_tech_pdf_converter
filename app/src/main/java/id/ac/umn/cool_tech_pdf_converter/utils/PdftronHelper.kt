@@ -1,19 +1,30 @@
 package id.ac.umn.cool_tech_pdf_converter.utils
 
+import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.pdftron.actions.easypdf.EasyPdfService
 import com.pdftron.common.PDFNetException
 import com.pdftron.pdf.Convert
 import com.pdftron.pdf.PDFDoc
+import com.pdftron.pdf.PDFDraw
 import com.pdftron.pdf.PDFNet
 import com.pdftron.pdf.utils.Utils
 import com.pdftron.sdf.SDFDoc
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 
 class PdftronHelper   {
+    val scope = CoroutineScope(Job() + Dispatchers.IO)
 
     fun simpleDocxConvert(inputFilePath: String, outputFilePath: String? , onFinishAction:()->Unit , onErrorAction:(message : String)->Unit) {
             try {
@@ -76,17 +87,35 @@ class PdftronHelper   {
 
 
 
-  fun pdfToWord(inputFile: File, ouputFolder: File, mDisposables : CompositeDisposable , onFinishAction:()->Unit , onErrorAction:(message : String)->Unit)  {
-        initializePdfService()
-        mDisposables.add(EasyPdfService.startPdf2WordJob(inputFile, ouputFolder)
-            .subscribe({ s: String ->
-                // do something with the converted file
-                onFinishAction.invoke()
+  fun pdfToWord(inputFilePath: String, ouputFilePath: String ,   onFinishAction:()->Unit , onErrorAction:(message : String)->Unit)  {
+      scope.launch{
+          initializePdfService()
 
-            }, { throwable: Throwable? ->
-                // handle error
-                onErrorAction.invoke(throwable?.message.orEmpty())
-            }))
+          val inputFile = File(inputFilePath)
+          if (inputFile.exists().not()){
+              inputFile.mkdirs()
+          }
+
+          val outputFile = File(ouputFilePath)
+          if (outputFile.exists().not()){
+              outputFile.mkdirs()
+          }else if(outputFile.isDirectory.not() && outputFile.canWrite()){
+              outputFile.delete()
+              outputFile.mkdirs()
+          }
+          EasyPdfService.startPdf2WordJob(inputFile,outputFile)
+
+              .subscribe({ s: String ->
+                  // do something with the converted file
+                  onFinishAction.invoke()
+              }, { throwable: Throwable? ->
+                  // handle error
+                  onErrorAction.invoke(throwable?.message ?: "unknown error")
+
+              })
+      }
+
+
     }
 
     fun simplePdfToWordConvert(context : Context , inputFilePath: String, outputFilePath: String? , onFinishAction:()->Unit , onErrorAction:(message : String)->Unit) {
@@ -110,6 +139,46 @@ class PdftronHelper   {
 
         }
     }
+
+    fun simplePdfToImageConvert(inputFilePath: String , outputFilePath: String? , onFinishAction:()->Unit , onErrorAction:(message : String)->Unit){
+        val draw = PDFDraw()
+        try {
+            val doc = PDFDoc(inputFilePath)
+            doc.initSecurityHandler()
+            draw.setDPI(92.0)
+            val itr = doc.pageIterator
+            while (itr.hasNext()) {
+                val current = itr.next()!!
+                draw.export(current, outputFilePath)
+            }
+            doc.close()
+            onFinishAction.invoke()
+        } catch (e: Exception) {
+            onErrorAction.invoke(e.message ?: "unknown error")
+        }
+    }
+
+    fun getRealPathFromURI(context: Context, contentUri: Uri): String? {
+        var cursor: Cursor? = null
+        return try {
+            val proj = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.contentResolver.query(contentUri, proj, null, null, null)
+            val index: Int? = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor?.moveToFirst()
+            if (index != null) {
+                cursor?.getString(index)
+            } else null
+        }
+
+        catch (e: Exception) {
+            Log.e(ContentValues.TAG, "getRealPathFromURI Exception : $e")
+            ""
+        } finally {
+            cursor?.close()
+        }
+    }
+
+
 
 
 
